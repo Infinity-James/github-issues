@@ -8,11 +8,28 @@
 
 import UIKit
 
+//	MARK: Box Class
+
+/**
+	By boxing values we can treat structs and classes the same.
+ */
+
 public class Box<T> {
     public let unbox: T
     public init(_ value: T) { self.unbox = value }
 }
 
+
+//	MARK: Public Functions
+
+/**
+	Maps a Screen with a callback that takes A to a Screen with a callback that takes B.
+
+	:param:	vc		The Screen to be mapped.
+	:param:	f		The function responsible for mapping A to B.
+
+	:returns:		A Screen with a callback that takes B mapped from the given vc.
+*/
 public func map<A,B>(vc: Screen<A>, f: A -> B) -> Screen<B> {
     return Screen { callback in
         return vc.run { y in
@@ -48,20 +65,49 @@ extension UIViewController {
     }
 }
 
+//	MARK: Screen Struct
+
+/**
+	A screen object capable of building a UIViewController object.
+ */
+
 public struct Screen<A> {
+	/**	A block which builds a UIViewController from this screen.	*/
     private let build: (A -> ()) -> UIViewController
+	/**	A navigation item attached to the UIViewController built form this screen.	*/
     public var navigationItem: NavigationItem
-    
+	
+	/**
+		Initialises this screen object with a function that will build the UIViewController.
+		
+		:param:	build	A function capable of build the UIViewController this Screen represents.
+	
+		:returns:	An initialised Screen object.
+	 */
     public init(_ build: (A -> ()) -> UIViewController) {
-        self.build = build
-        navigationItem = defaultNavigationItem
+        self.init(defaultNavigationItem, build)
     }
 
+	/**
+		Initialises this screen object with a function that will build the UIViewController and a navigation item..
+		
+		:param:	navigationItem	An item attached to the built UIViewController.
+		:param:	build			A function capable of build the UIViewController this Screen represents.
+		
+		:returns:	An initialised Screen object.
+	 */
     public init(_ navigationItem: NavigationItem, _ build: (A -> ()) -> UIViewController) {
         self.build = build
         self.navigationItem = navigationItem
     }
 
+	/**
+		Builds the UIViewController from this Screen.
+		
+		:param:	f		The callback function to pass to the created UIViewController.
+	
+		:returns:		The UIViewController this Screen represents.
+	 */
     public func run(f: A -> ()) -> UIViewController {
         let vc = build(f)
         vc.applyNavigationItem(navigationItem)
